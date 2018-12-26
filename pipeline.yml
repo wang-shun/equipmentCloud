@@ -65,8 +65,8 @@ resources:
         path: equipment-equipment-provider/equipment-equipment-provider-impl
       - name: equipment-authority-provider
         path: equipment-authority-provider/equipment-authority-provider-impl
-	  - name: equipment-syslog-provider
-		path: equipment-syslog-provider/equipment-syslog-provider-impl
+	    - name: equipment-syslog-provider
+		    path: equipment-syslog-provider/equipment-syslog-provider-impl
 
   - name: bp-frontend
     type: buildpack
