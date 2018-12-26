@@ -1,0 +1,97 @@
+version: '1.0'
+
+envs:
+  PROJECT_NAME: equipment
+  PLATFORM: CI
+  USE_AGENT: true
+
+stages:
+- name: repo
+  tasks:
+  - get: repo
+    params:
+      depth: 3
+
+- name: buildpack
+  tasks:
+    - aggregate:
+        - put: bp-backend
+          params:
+            only_build: false
+        - put: bp-frontend
+          params:
+            only_build: false
+
+- name: release
+  tasks:
+    - put: dicehub
+      params:
+        dice_yml: repo/dice.yml
+        #      dice_test_yml: repo/dice_test.yml
+        #      dice_development_yml: repo/dice_development.yml
+        #      dice_staging_yml: repo/dice_staging.yml
+        #      dice_production_yml: repo/dice_production.yml
+        init_sql: repo/migrations
+        replacement_images:
+          - bp-backend/pack-result
+          - bp-frontend/pack-result
+
+- name: deploy
+  tasks:
+    - put: deploy
+      params:
+        time_out: 300
+
+resources:
+  - name: repo
+    type: git
+    source:
+      uri: ((gittar.repo))
+      branch: ((gittar.branch))
+      username: ((gittar.username))
+      password: ((gittar.password))
+
+  - name: bp-backend
+    type: buildpack
+    source:
+      bp_repo: http://git.terminus.io/buildpacks/dice-bpack-termjava.git
+      bp_ver: master
+      bp_args:
+        USE_AGENT: 'true'
+      context: repo/services/yankuang-equipment
+      modules:
+        - name: equipment-web
+        - name: equipment-authority-provider
+          path: equipment-authority-provider/equipment-authority-provider-impl
+		- name: equipment-equipment-provider
+		  path：equipment-equipment-provider/equipment-equipment-provider-impl
+		- name: equipment-syslog-provider
+		  path：equipment-syslog-provider/equipment-syslog-provider-impl
+
+  - name: bp-frontend
+    type: buildpack
+    source:
+      bp_repo: http://git.terminus.io/buildpacks/dice-bpack-termnodejs.git
+      bp_ver: master
+      bp_args:
+        USE_AGENT: 'true'
+      context: repo/endpoints/yankuang-equipment-front
+      modules:
+        - name: yankuang-equipment-front
+
+  - name: dicehub
+    type: dicehub
+    source:
+      workspace: ((dice.env))
+      oss_endpoint: ((oss.endpoint))
+      oss_access_key: ((oss.access.key))
+      oss_secret_key: ((oss.secret.key))
+
+  - name: deploy
+    type: dice
+    source:
+      app_id: ((dice.id))
+      uri: ((dice.url))
+      operator_id: ((dice.operator.id))
+      workspace: ((dice.env))
+      branch: ((gittar.branch))

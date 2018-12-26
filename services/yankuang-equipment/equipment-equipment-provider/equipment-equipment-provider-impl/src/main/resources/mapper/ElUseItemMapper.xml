@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yankuang.equipment.equipment.mapper.ElUseItemMapper" >
+    <resultMap id="BaseResultMap" type="com.yankuang.equipment.equipment.model.ElUseItem" >
+        <id column="item_id" property="itemId" jdbcType="BIGINT" />
+        <result column="use_id" property="useId" jdbcType="BIGINT" />
+        <result column="equipment_id" property="equipmentId" jdbcType="BIGINT" />
+        <result column="main_param_name" property="mainParamName" jdbcType="VARCHAR" />
+        <result column="main_param_value" property="mainParamValue" jdbcType="VARCHAR" />
+        <result column="equipment_num" property="equipmentNum" jdbcType="INTEGER" />
+        <result column="equipment_effect" property="equipmentEffect" jdbcType="VARCHAR" />
+        <result column="equipment_position" property="equipmentPosition" jdbcType="BIGINT" />
+        <result column="remarks" property="remarks" jdbcType="VARCHAR" />
+        <result column="status" property="status" jdbcType="VARCHAR" />
+        <result column="code" property="code" jdbcType="VARCHAR" />
+        <result column="plan_use_id" property="planUseId" jdbcType="BIGINT"/>
+        <result column="use_at" property="useAt" jdbcType="TIMESTAMP"/>
+        <result column="is_use" property="isUse" jdbcType="TINYINT"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="sbName" property="sbName" jdbcType="VARCHAR"/>
+        <result column="cost_a1" property="costA1" javaType="DOUBLE"/>
+        <result column="sign" property="sign" jdbcType="BIGINT"/>
+    </resultMap>
+    <resultMap id="dtkListMap" type="com.yankuang.equipment.equipment.model.DtkList" >
+        <result column="sbName" property="sbName" jdbcType="VARCHAR"/>
+        <result column="equipment_num" property="equipmentNum" jdbcType="INTEGER"/>
+        <result column="equipmentModel" property="equipmentModel" jdbcType="VARCHAR"/>
+        <result column="cost_a1" property="costA1" javaType="DOUBLE"/>
+        <result column="use_at" property="useAt" jdbcType="TIMESTAMP"/>
+        <result column="remarks" property="remarks" jdbcType="VARCHAR"/>
+        <result column="deptName" property="deptName" jdbcType="VARCHAR"/>
+        <result column="equipment_effect" property="equipmentEffect" jdbcType="VARCHAR"/>
+        <result column="equipment_id" property="equipmentId" jdbcType="BIGINT"/>
+        <result column="sign" property="sign" jdbcType="BIGINT"/>
+        <result column="centerMonth" property="centerMonth" jdbcType="INTEGER"/>
+        <result column="centerYear" property="centerYear" jdbcType="INTEGER"/>
+        <result column="use_id" property="useId" jdbcType="BIGINT"/>
+        <result column="assetUnit" property="assetUnit" jdbcType="VARCHAR"/>
+        <result column="sbCode" property="sbCode" jdbcType="VARCHAR"/>
+        <result column="deptCode" property="deptCode" jdbcType="VARCHAR"/>
+        <result column="startDate" property="startDate" jdbcType="TIMESTAMP"/>
+        <result column="pcode" property="pcode" jdbcType="VARCHAR"/>
+        <result column="assetComp" property="assetComp" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Base_Column_List" >
+        item_id, use_id, equipment_id, main_param_name, main_param_value, equipment_num,
+        equipment_effect, equipment_position, remarks, status, code,  plan_use_id, use_at, is_use, cost_a1
+    </sql>
+    <insert id="create" parameterType="com.yankuang.equipment.equipment.model.ElUseItem">
+        INSERT INTO el_use_item(
+        use_id, equipment_id, main_param_name, main_param_value, equipment_num,
+        equipment_effect, equipment_position, remarks, status, code,  plan_use_id,
+        use_at, is_use,cost_a1
+        )
+        VALUES
+        (#{useId,jdbcType=BIGINT}, #{equipmentId,jdbcType=BIGINT},
+      #{mainParamName,jdbcType=VARCHAR}, #{mainParamValue,jdbcType=VARCHAR}, #{equipmentNum,jdbcType=INTEGER},
+      #{equipmentEffect,jdbcType=VARCHAR}, #{equipmentPosition,jdbcType=BIGINT}, #{remarks,jdbcType=VARCHAR},
+      #{status,jdbcType=VARCHAR}, #{code,jdbcType=VARCHAR}, #{planUseId,jdbcType=BIGINT}, #{useAt,jdbcType=TIMESTAMP},
+      #{isUse,jdbcType=TINYINT},#{costA1,jdbcType=DOUBLE})
+    </insert>
+
+    <update id="update" parameterType="com.yankuang.equipment.equipment.model.ElUseItem">
+        UPDATE el_use_item
+        <set>
+            <if test="useId != null " >
+                use_id = #{useId,jdbcType=BIGINT},
+            </if>
+            <if test="equipmentId != null " >
+                equipment_id = #{equipmentId,jdbcType=BIGINT},
+            </if>
+            <if test="mainParamName != null and mainParamName != ''" >
+                main_param_name = #{mainParamName,jdbcType=VARCHAR},
+            </if>
+            <if test="mainParamValue != null and manParamValue != ''" >
+                main_param_value = #{mainParamValue,jdbcType=VARCHAR},
+            </if>
+            <if test="equipmentNum != null" >
+                equipment_num = #{equipmentNum,jdbcType=INTEGER},
+            </if>
+            <if test="equipmentEffect != null and equipmentEffect != ''" >
+                equipment_effect = #{equipmentEffect,jdbcType=VARCHAR},
+            </if>
+            <if test="equipmentPosition != null" >
+                equipment_position = #{equipmentPosition,jdbcType=BIGINT},
+            </if>
+            <if test="remarks != null and remarks != ''" >
+                remarks = #{remarks,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null and status != ''" >
+                status = #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="code != null and code != ''" >
+                code = #{code,jdbcType=VARCHAR},
+            </if>
+            <if test="planUseId != null">
+                plan_use_id = #{planUseId,jdbc=BIGINT},
+            </if>
+            <if test="useAt != null">
+                use_at = #{useAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="costA1 != null" >
+                cost_a1 = #{costA1,jdbcType=DOUBLE},
+            </if>
+            <if test="sign != null">
+                sign = #{sign,jdbcType=BIGINT},
+            </if>
+        </set>
+        WHERE item_id = #{itemId,jdbcType=BIGINT}
+    </update>
+
+    <select id="list" parameterType="map" resultMap="BaseResultMap">
+        SELECT t1.*,dept.name AS name,sb.name AS sbName
+        FROM el_use_item t1
+        LEFT JOIN el_department dept
+        ON t1.equipment_position = dept.id
+        LEFT JOIN sb_position sb
+        ON t1.equipment_effect = sb.code
+        WHERE 1=1
+        <if test="useId != null" >
+            AND use_id = #{useId,jdbcType=BIGINT}
+        </if>
+        <if test="equipmentId != null" >
+            AND equipment_id = #{equipmentId,jdbcType=BIGINT}
+        </if>
+        <if test="mainParamName != null and mainParamName != ''" >
+            AND main_param_name = #{mainParamName,jdbcType=VARCHAR}
+        </if>
+        <if test="mainParamValue != null and mainParamValue != ''" >
+            AND main_param_value = #{mainParamValue,jdbcType=VARCHAR}
+        </if>
+        <if test="equipmentNum != null " >
+            AND equipment_num = #{equipmentNum,jdbcType=INTEGER}
+        </if>
+        <if test="equipmentEffect != null and equipmentEffect != ''" >
+            AND equipment_effect = #{equipmentEffect,jdbcType=VARCHAR}
+        </if>
+        <if test="equipmentPosition != null" >
+            AND equipment_position = #{equipmentPosition,jdbcType=BIGINT}
+        </if>
+        <if test="remarks != null and remarks != ''" >
+            AND remarks = #{remarks,jdbcType=VARCHAR}
+        </if>
+        <if test="status != null and status != ''" >
+            AND status = #{status,jdbcType=VARCHAR}
+        </if>
+        <if test="code != null and code != ''" >
+            AND code = #{code,jdbcType=VARCHAR}
+        </if>
+        <if test="planUseId != null">
+            AND plan_use_id = #{planUseId,jdbc=BIGINT}
+        </if>
+        <if test="useAt != null">
+            AND use_at = #{useAt,jdbcType=TIMESTAMP}
+        </if>
+        AND dept.status != 99
+        AND t1.status != 99
+        AND sb.status != 99
+        AND is_use = #{isUse,jdbcType=TINYINT}
+    </select>
+
+    <select id="findById" resultMap="BaseResultMap" parameterType="Long">
+        SELECT t1.*,dept.name as name,t1.equipment_effect AS sbName
+        FROM el_use_item t1
+        LEFT JOIN el_department dept
+        ON t1.equipment_position = dept.id
+        WHERE item_id = #{itemId,jdbcType=BIGINT}
+        AND t1.status != 99
+        AND dept.status != 99
+    </select>
+
+    <update id="delete" parameterType="Long">
+        UPDATE el_use_item
+        SET status = 99
+        WHERE use_id = #{useId,jdbcType=BIGINT}
+    </update>
+
+    <update id="deleteById" parameterType="Long">
+        UPDATE el_use_item
+        SET status = 99
+        WHERE item_id = #{itemId,jdbcType=BIGINT}
+    </update>
+
+    <select id="findByUseId" parameterType="Long" resultMap="BaseResultMap">
+        SELECT t1.*,dept.name as name
+        FROM el_use_item t1
+        LEFT JOIN el_department dept
+        ON t1.equipment_position = dept.id
+        WHERE t1.use_id = #{useId,jdbcType=BIGINT}
+        AND dept.status != 99
+        AND t1.status != 99
+    </select>
+
+
+    <select id="findByCondition" parameterType="map" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from el_use_item
+        <where>
+            1 = 1 and status != '99'
+            <if test="useId != null">
+                and use_id = #{useId}
+            </if>
+            <if test="equipmentId != null">
+                and equipment_id = #{equipmentId}
+            </if>
+            <if test="isUse != null">
+                and is_use = #{isUse}
+            </if>
+        </where>
+    </select>
+
+    <select id="findElUseItemTL" parameterType="com.yankuang.equipment.equipment.model.ElUseItem" resultMap="BaseResultMap">
+        select u1.*,dept.name as name from el_use_item u1
+        left join el_use u2 on u1.use_id = u2.id
+        left join el_department dept on u1.equipment_position = dept.id
+        where u1.is_use = 1
+        and u2.use_equipment_type = 1
+        and u1.equipment_position = #{equipmentPosition}
+        and u1.status != 99
+    </select>
+
+    <update id="updateByEquipmentId" parameterType="com.yankuang.equipment.equipment.model.ElUseItem">
+        UPDATE el_use_item
+        SET sign = #{sign}
+        WHERE equipment_id = #{equipmentId}
+        AND status != 99
+        AND is_use = 1
+        AND sign is null
+    </update>
+
+    <!--东滩矿综掘面综机设备使用清单-->
+    <select id="dtkReport" parameterType="com.yankuang.equipment.equipment.model.DtkList" resultMap="dtkListMap">
+        select sb.asset_comp AS assetComp,sb.asset_unit AS assetUnit,sb.name AS sbName,t1.equipment_num,t2.equipment_model AS equipmentModel,t1.cost_a1,t1.use_at,t1.remarks,t1.equipment_id,t1.sign,t1.use_id from el_use_item t1
+        left join sb_equipment_z sb on t1.equipment_id = sb.id
+        left join el_plan_use t2 on t1.plan_use_id = t2.id
+        left join el_department depart on t1.equipment_position = depart.id
+        where sb.status != 99
+        and t1.status != 99
+        and t2.is_del != 99
+        and t1.is_use = 2
+        and t2.equipment_type = 2
+        and t1.equipment_id = #{equipmentId}
+        and depart.code = #{deptCode}
+        and t1.equipment_effect = #{equipmentEffect}
+        and t1.use_at > #{startDate}
+    </select>
+
+    <select id="findReportLY" parameterType="com.yankuang.equipment.equipment.model.DtkList" resultMap="dtkListMap">
+        select sb.asset_comp AS assetComp,
+        sb.asset_unit AS assetUnit,
+        sb.name AS sbName,
+        t1.equipment_num,
+        t2.equipment_model AS equipmentModel,
+        t1.cost_a1,t1.use_at,t1.remarks,
+        t1.equipment_id,t1.sign,
+        t1.use_id,sb.code ,
+        depart.code as deptCode,
+        t1.equipment_effect as equipmentEffect
+        from el_use_item t1
+        left join sb_equipment_z sb on t1.equipment_id = sb.id
+        left join el_plan_use t2 on t1.plan_use_id = t2.id
+        left join el_department depart on t1.equipment_position = depart.id
+        where sb.status != 99
+        and t1.status != 99
+        and t2.is_del != 99
+        and t1.is_use = 1
+        and t2.equipment_type = 2
+        and depart.pcode = #{deptCode}
+        and t1.equipment_effect = #{equipmentEffect}
+        and year(t1.use_at) = #{useYear}
+        and month(t1.use_at) = #{useMonth}
+    </select>
+
+    <select id="findKB" parameterType="com.yankuang.equipment.equipment.model.DtkList" resultType="java.lang.Integer">
+        select count(1) from el_use_item t1
+        left join sb_equipment_z sb on t1.equipment_id = sb.id
+        left join el_plan_use t2 on t1.plan_use_id = t2.id
+        left join el_department depart on t1.equipment_position = depart.id
+        where sb.status != 99
+        and t1.status != 99
+        and t2.is_del != 99
+        and t1.is_use = 1
+        and t1.equipment_id = #{equipmentId}
+        and depart.code = #{deptCode}
+        and t1.equipment_effect = #{equipmentEffect}
+        and t2.center_month = #{centerMonth}
+        and t2.center_year = #{centerYear}
+        and t2.equipment_type = 2
+        and (depart.name like "%济宁%" or depart.name like "%兖州%")
+    </select>
+
+    <select id="findEquipmentLY" resultType="java.lang.Integer" parameterType="java.lang.Long">
+      select count(1) from el_use_item t1 LEFT JOIN el_use t2 ON t2.id = t1.use_id
+        where t1.sign IS NULL
+        and t1.is_use = 1
+        and t2.status = 4
+        and t1.equipment_id = #{equipmentId}
+    </select>
+
+    <select id="findEquipmentTZ" resultType="java.lang.Integer" parameterType="java.lang.Long">
+        select count(1) from el_use_item t1 LEFT JOIN el_use t2 ON t2.id = t1.use_id
+        where t1.sign IS NOT NULL
+        and t1.is_use = 2
+        and t2.status = 4
+        and t1.equipment_id = #{equipmentId}
+    </select>
+</mapper>

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yankuang.equipment.authority.mapper.RoleMapper">
+    <resultMap id="ResultMap" type="com.yankuang.equipment.authority.model.Role">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="code" property="code" jdbcType="VARCHAR"/>
+        <result column="sorting" property="sorting" jdbcType="BIGINT"/>
+        <result column="status" property="status" jdbcType="TINYINT"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="version" property="version" jdbcType="BIGINT"/>
+        <result column="project_code" property="projectCode" jdbcType="VARCHAR"/>
+        <result column="deptCode" property="deptCode" jdbcType="VARCHAR"/>
+        <result column="deptName" property="deptName" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="all_cols">
+      id, name, code, sorting, status, remark, create_by, update_at, update_by,
+      create_at, version, project_code
+    </sql>
+
+    <insert id="create" parameterType="com.yankuang.equipment.authority.model.Role">
+        INSERT INTO el_role
+          (name,code,sorting,remark,create_by,update_by,project_code)
+        VALUES
+          (#{name},#{code},#{sorting},#{remark},#{createBy},#{updateBy},#{projectCode})
+    </insert>
+
+
+    <update id="delete" parameterType="java.util.List">
+        UPDATE el_role
+        <set>
+            status = 99,
+            update_at = CURRENT_TIMESTAMP()
+        </set>
+        WHERE code in
+        <foreach collection="list" item="code" separator="," open="(" close=")">
+            #{code}
+        </foreach>
+    </update>
+
+    <update id="update" parameterType="com.yankuang.equipment.authority.model.Role">
+        UPDATE el_role
+        <set>
+            <if test="name != null and name != '' ">
+                name = #{name},
+            </if>
+            <if test="sorting != null and sorting != '' ">
+                sorting = #{sorting},
+            </if>
+            <if test="status != null and status != '' ">
+                status = #{status},
+            </if>
+            <if test="updateBy != null and updateBy != '' ">
+                update_by = #{updateBy},
+            </if>
+            <if test="version != null and version != '' ">
+                version = #{version},
+            </if>
+            <!--<if test="remark != null and remark != '' ">-->
+                <!--remark = #{remark},-->
+            <!--</if>-->
+            remark = #{remark},
+            update_at = CURRENT_TIMESTAMP()
+        </set>
+        WHERE code = #{code}
+        AND status != 99
+    </update>
+
+    <select id="findByCode" parameterType="String" resultMap="ResultMap">
+        SELECT
+        r.name,r.code,r.sorting,r.status,r.remark,r.create_by,r.update_at,r.update_by,
+        r.create_at,r.version,r.project_code,d.code as deptCode,d.name as deptName
+        FROM el_role r
+        left join el_department_role_mapping dr
+          on r.code = dr.role_code
+        left join el_department d
+          on d.code = dr.dept_code
+        WHERE r.code = #{code}
+        AND r.status != 99
+        and dr.status != 99
+        and d.status != 99
+    </select>
+
+    <select id="findByName" parameterType="String" resultMap="ResultMap">
+        SELECT
+        <include refid="all_cols"/>
+        FROM el_role
+        WHERE name = #{name}
+        AND status != 99
+    </select>
+
+    <select id="list" parameterType="java.util.HashMap" resultMap="ResultMap">
+        SELECT
+        r.name,r.code,r.sorting,r.status,r.remark,r.create_by,r.update_at,r.update_by,
+        r.create_at,r.version,r.project_code,d.code as deptCode,d.name as deptName
+        FROM el_role r
+        left join el_department_role_mapping dr
+        on r.code = dr.role_code
+        left join el_department d
+        on d.code = dr.dept_code
+        <where>
+            1 = 1
+            <if test="name != null and name != ''">
+                AND r.name like '%${name}%'
+            </if>
+            AND r.status != 99
+            and dr.status != 99
+            and d.status != 99
+        </where>
+        order by r.create_at desc
+    </select>
+
+
+    <select id="findByUserCode" parameterType="String" resultMap="ResultMap">
+        select
+        r.code,r.name,r.create_at,r.update_at
+        from el_role r
+        left join el_role_user_mapping ru
+          on r.code = ru.role_code
+        left join el_user u
+          on u.code = ru.user_code
+        where u.code= #{code}
+        and r.status != 99
+        and ru.status != 99
+        and u.status != 99
+        order by r.create_at desc
+    </select>
+
+    <select id="findByDeptCode" parameterType="String" resultMap="ResultMap">
+        SELECT
+        r.name,r.code,r.sorting,r.status,r.remark,r.create_by,r.update_at,r.update_by,
+        r.create_at,r.version,r.project_code
+        FROM el_role r
+        left join el_department_role_mapping dr
+          on r.code = dr.role_code
+        left join el_department d
+          on d.code = dr.dept_code
+        WHERE d.code = #{code}
+        AND r.status != 99
+        and dr.status != 99
+        and d.status != 99
+    </select>
+
+</mapper>

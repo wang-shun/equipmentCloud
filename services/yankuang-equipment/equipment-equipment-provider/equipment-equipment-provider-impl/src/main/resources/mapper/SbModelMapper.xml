@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yankuang.equipment.equipment.mapper.SbModelMapper" >
+  <resultMap id="BaseResultMap" type="com.yankuang.equipment.equipment.model.SbModel" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="sbtype_one" property="sbtypeOne" jdbcType="VARCHAR" />
+    <result column="sbtype_one_name" property="sbtypeOneName" jdbcType="VARCHAR" />
+    <result column="sbtype_two" property="sbtypeTwo" jdbcType="VARCHAR" />
+    <result column="sbtype_two_name" property="sbtypeTwoName" jdbcType="VARCHAR" />
+    <result column="sbtype_three" property="sbtypeThree" jdbcType="VARCHAR" />
+    <result column="sbtype_three_name" property="sbtypeThreeName" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="TINYINT" />
+    <result column="create_by" property="createBy" jdbcType="VARCHAR" />
+    <result column="create_at" property="createAt" jdbcType="TIMESTAMP" />
+    <result column="update_by" property="updateBy" jdbcType="VARCHAR" />
+    <result column="update_at" property="updateAt" jdbcType="TIMESTAMP" />
+    <result column="version" property="version" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, code, name, sbtype_one, sbtype_two, sbtype_three, status, create_by, create_at, 
+    update_by, update_at, version
+  </sql>
+  <select id="findById" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select t.*,t1.name as sbtype_one_name,t2.name as sbtype_two_name,t3.name as sbtype_three_name
+    from sb_model t
+    left JOIN sb_type t1 on t.sbtype_one=t1.code and t1.status='1'
+    left JOIN sb_type t2 on t.sbtype_two=t2.code and t2.status='1'
+    left JOIN sb_type t3 on t.sbtype_three=t3.code and t3.status='1'
+    where t.id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteById" parameterType="java.lang.Long" >
+    update sb_model
+    set status = 99
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deletes" parameterType="java.util.List">
+    update sb_model
+    set status = 99
+    where id in
+    <foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+      #{item}
+    </foreach>
+  </delete>
+  <insert id="create" parameterType="com.yankuang.equipment.equipment.model.SbModel" >
+    insert into sb_model (code, name,
+      sbtype_one, sbtype_two, sbtype_three, 
+      create_by, create_at,
+      update_by, update_at
+      )
+    values (#{code,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+      #{sbtypeOne,jdbcType=VARCHAR}, #{sbtypeTwo,jdbcType=VARCHAR}, #{sbtypeThree,jdbcType=VARCHAR}, 
+      #{createBy,jdbcType=VARCHAR}, CURRENT_TIMESTAMP(),
+      #{updateBy,jdbcType=VARCHAR}, CURRENT_TIMESTAMP()
+      )
+  </insert>
+
+  <update id="update" parameterType="com.yankuang.equipment.equipment.model.SbModel" >
+    update sb_model
+    set code = #{code,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR},
+      sbtype_one = #{sbtypeOne,jdbcType=VARCHAR},
+      sbtype_two = #{sbtypeTwo,jdbcType=VARCHAR},
+      sbtype_three = #{sbtypeThree,jdbcType=VARCHAR},
+      update_by = #{updateBy,jdbcType=VARCHAR},
+      update_at = CURRENT_TIMESTAMP()
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <select id="list" resultMap="BaseResultMap">
+    select t.*,t1.name as sbtype_one_name,t2.name as sbtype_two_name,t3.name as sbtype_three_name
+    from sb_model t
+    left JOIN sb_type t1 on t.sbtype_one=t1.code and t1.status='1'
+    left JOIN sb_type t2 on t.sbtype_two=t2.code and t2.status='1'
+    left JOIN sb_type t3 on t.sbtype_three=t3.code and t3.status='1'
+    <where>
+      1=1 and t.status = '1'
+      <if test="p_code != null and p_code!=''" >
+        AND t.code like '%' #{p_code,jdbcType=VARCHAR} '%'
+      </if>
+      <if test="p_name != null and p_name!=''" >
+        AND t.name like '%' #{p_name,jdbcType=VARCHAR} '%'
+      </if>
+    </where>
+    order by t.create_at desc
+  </select>
+
+  <select id="selectByMaxId" resultMap="BaseResultMap" >
+    select
+    <include refid="Base_Column_List" />
+    from sb_model
+    where id=(select MAX(id) from sb_model where sbtype_three = #{sbtypeThree,jdbcType=VARCHAR})
+  </select>
+
+  <select id="listBySbtypeThree" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from sb_model
+    where status = '1'
+      <if test="sbtypeThree != null and sbtypeThree != ''">
+          and sbtype_three = #{sbtypeThree,jdbcType=VARCHAR}
+      </if>
+      <if test="sbtypeTwo != null and sbtypeTwo != ''">
+          and sbtype_two = #{sbtypeTwo,jdbcType=VARCHAR}
+      </if>
+  </select>
+</mapper>

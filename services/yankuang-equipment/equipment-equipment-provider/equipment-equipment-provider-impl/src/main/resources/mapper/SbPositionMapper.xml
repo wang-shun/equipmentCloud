@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yankuang.equipment.equipment.mapper.SbPositionMapper" >
+  <resultMap id="BaseResultMap" type="com.yankuang.equipment.equipment.model.SbPosition" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="VARCHAR" />
+    <result column="state_name" property="stateName" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="type_name" property="typeName" jdbcType="VARCHAR" />
+    <result column="org" property="org" jdbcType="VARCHAR" />
+    <result column="position" property="position" jdbcType="VARCHAR" />
+    <result column="position_name" property="positionName" jdbcType="VARCHAR" />
+    <result column="isuse" property="isuse" jdbcType="TINYINT" />
+    <result column="isrfid" property="isrfid" jdbcType="TINYINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="TINYINT" />
+    <result column="create_by" property="createBy" jdbcType="VARCHAR" />
+    <result column="create_at" property="createAt" jdbcType="TIMESTAMP" />
+    <result column="update_by" property="updateBy" jdbcType="VARCHAR" />
+    <result column="update_at" property="updateAt" jdbcType="TIMESTAMP" />
+    <result column="version" property="version" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, code, name, state, type, org, position, isuse, isrfid, remark, status, create_by, 
+    create_at, update_by, update_at, version
+  </sql>
+  <select id="findById" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from sb_position
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteById" parameterType="java.lang.Long" >
+    update sb_position
+    set status = 99
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deletes" parameterType="java.util.List">
+    update sb_position
+    set status = 99
+    where id in 
+    <foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+      #{item}
+    </foreach>
+  </delete>
+  <insert id="create" parameterType="com.yankuang.equipment.equipment.model.SbPosition" >
+    insert into sb_position (code, name,
+      state, type, org, position, 
+      isuse, isrfid, remark, 
+      create_by, create_at,
+      update_by, update_at
+      )
+    values (#{code,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+      #{state,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{org,jdbcType=VARCHAR}, #{position,jdbcType=VARCHAR}, 
+      #{isuse,jdbcType=TINYINT}, #{isrfid,jdbcType=TINYINT}, #{remark,jdbcType=VARCHAR}, 
+      #{createBy,jdbcType=VARCHAR}, CURRENT_TIMESTAMP(),
+      #{updateBy,jdbcType=VARCHAR}, CURRENT_TIMESTAMP()
+      )
+  </insert>
+
+  <update id="update" parameterType="com.yankuang.equipment.equipment.model.SbPosition" >
+    update sb_position
+    set code = #{code,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR},
+      state = #{state,jdbcType=VARCHAR},
+      type = #{type,jdbcType=VARCHAR},
+      org = #{org,jdbcType=VARCHAR},
+      position = #{position,jdbcType=VARCHAR},
+      isuse = #{isuse,jdbcType=TINYINT},
+      isrfid = #{isrfid,jdbcType=TINYINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      update_by = #{updateBy,jdbcType=VARCHAR},
+      update_at = CURRENT_TIMESTAMP()
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="list" resultMap="BaseResultMap">
+    select t.*,t1.name as state_name,t2.name as type_name,p.name position_name
+    from sb_position t
+    left join sys_config t1 on t.state=t1.code and t1.type='sb_position_status' and t1.status = '1'
+    left join sys_config t2 on t.state=t2.code and t2.type='sb_position_type' and t2.status = '1'
+    left join el_department p on t.position = p.id
+    <where>
+      1=1 and t.status = '1'
+      <if test="code!=null and code!=''">
+        and t.code like '%' #{code,jdbcType=VARCHAR} '%'
+      </if>
+      <if test="name!=null and name!=''">
+        and t.name like '%' #{name,jdbcType=VARCHAR} '%'
+      </if>
+      <if test="type!=null and type!=''">
+        and t.type = #{type,jdbcType=VARCHAR}
+      </if>
+      <if test="org!=null and org!=''">
+        and t.org = #{org,jdbcType=VARCHAR}
+      </if>
+      <if test="position!=null and position!=''">
+        and t.position = #{position,jdbcType=VARCHAR}
+      </if>
+    </where>
+    order by t.create_at desc
+  </select>
+
+  <select id="selectByMaxId" resultMap="BaseResultMap" >
+    select
+    <include refid="Base_Column_List" />
+    from sb_position
+    where id=(select MAX(id) from sb_position)
+  </select>
+</mapper>

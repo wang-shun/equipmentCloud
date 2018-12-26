@@ -1,0 +1,16 @@
+
+
+services/**/.idea/*
+services/**/target/*
+services/**/*/target/
+services/**/.dubbo/
+
+.idea
+*.iml
+*.class
+rebel.xml
+
+null/
+endpoints/**/node_modules/
+
+

@@ -1,0 +1,5 @@
+node_modules/*
+.next/*
+.vscode/*
+static/
+pages/_document.js

@@ -1,0 +1,606 @@
+package com.yankuang.equipment.web.restful;
+
+import com.github.pagehelper.PageInfo;
+import com.yankuang.equipment.authority.model.Dept;
+import com.yankuang.equipment.authority.service.DeptService;
+import com.yankuang.equipment.common.util.CommonResponse;
+import com.yankuang.equipment.common.util.Constants;
+import com.yankuang.equipment.common.util.JsonUtils;
+import com.yankuang.equipment.equipment.model.ElPlanItem;
+import com.yankuang.equipment.equipment.model.ElPlanUse;
+import com.yankuang.equipment.equipment.model.SbPosition;
+import com.yankuang.equipment.equipment.service.ElPlanUseService;
+import com.yankuang.equipment.equipment.service.ElUseService;
+import com.yankuang.equipment.web.dto.ElPlanDTO;
+import com.yankuang.equipment.web.dto.UserDTO;
+import com.yankuang.equipment.web.util.UserFromRedis;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
+import com.yankuang.equipment.equipment.model.ElPlan;
+import com.yankuang.equipment.equipment.service.ElPlanService;
+import com.yankuang.equipment.web.dto.ElPlanUseDTO;
+import com.yankuang.equipment.web.service.ElPlanPlusService;
+import io.terminus.boot.rpc.common.annotation.RpcConsumer;
+import io.terminus.common.model.Paging;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
+
+/**
+ * Created by zhouy on 2018/7/31.
+ */
+@CrossOrigin(maxAge = 3600)
+@RestController
+@RequestMapping("/v1/elplan")
+public class ElPlanController {
+
+    Logger logger = LoggerFactory.getLogger(ElPlanController.class);
+
+    @RpcConsumer
+    ElPlanService elPlanService;
+
+    @Autowired
+    ElPlanPlusService elPlanPlusService;
+
+    @RpcConsumer
+    ElPlanUseService elPlanUseService;
+
+    @RpcConsumer
+    ElUseService elUseService;
+
+    @RpcConsumer
+    DeptService deptService;
+
+    @Autowired
+    UserFromRedis userFromRedis;
+
+    /**
+     * 创建通用设备月度租赁计划
+     * @param elPlan
+     * @return
+     */
+    @PostMapping("/{equipmentType}/{planType}")
+    public CommonResponse create(@PathVariable(value = "equipmentType") String equipmentType,
+                                 @PathVariable(value = "planType") String planType,
+                                 @RequestBody ElPlan elPlan) {
+
+        Boolean res = false;
+        try {
+            if (StringUtils.isEmpty(elPlan)) {
+                return CommonResponse.errorMsg("设备租赁计划不得为空");
+            }
+            if (StringUtils.isEmpty(equipmentType) || StringUtils.isEmpty(planType)) {
+                return CommonResponse.errorMsg("设备租赁计划url有误");
+            }
+            if (StringUtils.isEmpty(elPlan.getPlanYear())) {
+                return CommonResponse.errorMsg("需求年度不得为空");
+            }
+            if (StringUtils.isEmpty(elPlan.getPlanPosition())) {
+                return CommonResponse.errorMsg("提出单位不得为空");
+            }
+            if (elPlan.getElPlanItemList() == null && elPlan.getElPlanItemList().size() <= 0) {
+                return CommonResponse.errorMsg("设备列表记录不得为空");
+            }
+
+            if (Constants.PLANEQUIPMENTTYPE_GENERIC_VALUE.equals(equipmentType) && Constants.PLANTYPE_MONTH_VALUE.equals(planType)) {
+                ElPlan plan = new ElPlan();
+                plan.setPlanEquipmentType(Constants.PLANEQUIPMENTTYPE_GENERIC);
+                plan.setPlanType(Constants.PLANTYPE_MONTH);
+                plan.setPlanYear(elPlan.getPlanYear());
+                plan.setPlanMonth(elPlan.getPlanMonth());
+                plan.setPlanPosition(elPlan.getPlanPosition());
+                Paging<ElPlan> planPage = elPlanService.findElPlanByCondition(plan,10,1);
+                if (planPage != null && planPage.getData() != null && planPage.getData().size() > 0) {
+                    return CommonResponse.errorMsg("该单位已提报"+elPlan.getPlanMonth()+"月的通用设备月度租赁计划");
+                }
+            }
+            if (Constants.PLANEQUIPMENTTYPE_GENERIC_VALUE.equals(equipmentType) && Constants.PLANTYPE_YEAR_VALUE.equals(planType)) {
+                ElPlan plan = new ElPlan();
+                plan.setPlanEquipmentType(Constants.PLANEQUIPMENTTYPE_GENERIC);
+                plan.setPlanType(Constants.PLANTYPE_YEAR);
+                plan.setPlanYear(elPlan.getPlanYear());
+                plan.setPlanPosition(elPlan.getPlanPosition());
+                Paging<ElPlan> planPage = elPlanService.findElPlanByCondition(plan,10,1);
+                if (planPage != null && planPage.getData() != null && planPage.getData().size() > 0) {
+                    return CommonResponse.errorMsg("该单位已提报"+elPlan.getPlanYear()+"年的通用设备年度租赁计划");
+                }
+            }
+
+            if (Constants.PLANEQUIPMENTTYPE_INTEGRATED_VALUE.equals(equipmentType) && Constants.PLANTYPE_YEAR_VALUE.equals(planType)) {
+                ElPlan plan = new ElPlan();
+                plan.setPlanType(Constants.PLANTYPE_YEAR);
+                plan.setPlanEquipmentType(Constants.PLANEQUIPMENTTYPE_INTEGRATED);
+                plan.setPlanYear(elPlan.getPlanYear());
+                plan.setPlanPosition(elPlan.getPlanPosition());
+                Paging<ElPlan> planPage = elPlanService.findElPlanByCondition(plan,10,1);
+                if (planPage != null && planPage.getData() != null && planPage.getData().size() > 0) {
+                    return CommonResponse.errorMsg("该单位已提报"+elPlan.getPlanYear()+"年的综机设备年度租赁计划");
+                }
+            }
+
+            // 获取租赁计划设备类型
+            if (!StringUtils.isEmpty(equipmentType) && Constants.PLANEQUIPMENTTYPE_GENERIC_VALUE.equals(equipmentType)) {
+                elPlan.setPlanEquipmentType(Constants.PLANEQUIPMENTTYPE_GENERIC);
+            }
+            if (!StringUtils.isEmpty(equipmentType) && Constants.PLANEQUIPMENTTYPE_INTEGRATED_VALUE.equals(equipmentType)) {
+                elPlan.setPlanEquipmentType(Constants.PLANEQUIPMENTTYPE_INTEGRATED);
+            }
+
+            // 获取设备租赁计划类型
+            if (!StringUtils.isEmpty(planType) && Constants.PLANTYPE_URGENT_VALUE.equals(planType)) {
+                if (StringUtils.isEmpty(elPlan.getPlanMonth())) {
+                    return CommonResponse.errorMsg("需求月度不得为空");
+                }
+                elPlan.setPlanType(Constants.PLANTYPE_URGENT);
+            }
+            if (!StringUtils.isEmpty(planType) && Constants.PLANTYPE_MONTH_VALUE.equals(planType)) {
+                if (StringUtils.isEmpty(elPlan.getPlanMonth())) {
+                    return CommonResponse.errorMsg("需求月度不得为空");
+                }
+                elPlan.setPlanType(Constants.PLANTYPE_MONTH);
+            }
+            if (!StringUtils.isEmpty(planType) && Constants.PLANTYPE_QUARTER_VALUE.equals(planType)) {
+                if (StringUtils.isEmpty(elPlan.getPlanQuarter())) {
+                    return CommonResponse.errorMsg("需求季度不得为空");
+                }
+                elPlan.setPlanType(Constants.PLANTYPE_QUARTER);
+            }
+            if (!StringUtils.isEmpty(planType) && Constants.PLANTYPE_YEAR_VALUE.equals(planType)) {
+                elPlan.setPlanType(Constants.PLANTYPE_YEAR);
+            }
+
+            if (!Constants.PLANEQUIPMENTTYPE_GENERIC.equals(elPlan.getPlanEquipmentType())
+                    && !Constants.PLANEQUIPMENTTYPE_INTEGRATED.equals(elPlan.getPlanEquipmentType())) {
+                return CommonResponse.errorMsg("设备租赁计划url有误");
+            }
+            if (!Constants.PLANTYPE_YEAR.equals(elPlan.getPlanType())
+                    && !Constants.PLANTYPE_QUARTER.equals(elPlan.getPlanType())
+                    && !Constants.PLANTYPE_MONTH.equals(elPlan.getPlanType())
+                    && !Constants.PLANTYPE_URGENT.equals(elPlan.getPlanType())) {
+                return CommonResponse.errorMsg("设备租赁计划url有误");
+            }
+            UserDTO userDTO = userFromRedis.findByToken();
+            if (userDTO != null) {
+                elPlan.setPlanCreatorId(userDTO.getId()+"");
+                elPlan.setPlanUpdatorId(userDTO.getId()+"");
+                elPlan.setPlanCreatorName(userDTO.getName());
+                elPlan.setPlanUpdatorName(userDTO.getName());
+            }
+
+            // 存储数据
+            res = elPlanService.create(elPlan);
+            if (!res) {
+                return CommonResponse.errorMsg("租赁计划创建失败");
+            }
+            return CommonResponse.ok();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return CommonResponse.errorException("租赁计划服务异常");
+        }
+    }
+
+    /**
+     * 更新设备租赁计划
+     *
+     * @param elPlan
+     * @return
+     */
+    @PutMapping("")
+    public CommonResponse update(@RequestBody ElPlan elPlan) {
+
+        Boolean res = false;
+        try {
+            if (elPlan == null || StringUtils.isEmpty(elPlan.getPlanId())) {
+                return CommonResponse.errorMsg("通用设备租赁计划ID不得为空");
+            }
+            ElPlan plan = elPlanService.findElPlanById(elPlan.getPlanId());
+            if (plan == null) {
+                return CommonResponse.errorMsg("该条租赁计划已过期");
+            }
+            if (Constants.PLANSTATUS_FAILED.equals(plan.getPlanStatus())
+                    || Constants.PLANSTATUS_PASSED.equals(plan.getPlanStatus())) {
+                return CommonResponse.errorMsg("该条租赁计划已审核，不能编辑修改");
+            }
+            if (Constants.PLANSTATUS_COMMITED.equals(plan.getPlanStatus())) {
+                return CommonResponse.errorMsg("该条租赁计划已提交，不能编辑修改");
+            }
+            UserDTO userDTO = userFromRedis.findByToken();
+            if (userDTO != null) {
+                elPlan.setPlanUpdatorId(userDTO.getId()+"");
+                elPlan.setPlanUpdatorName(userDTO.getName());
+            }
+            res = elPlanService.update(elPlan);
+            if (!res) {
+                return CommonResponse.errorMsg("租赁计划更新失败");
+            }
+            return CommonResponse.ok();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return CommonResponse.errorException("租赁计划更新服务异常");
+        }
+
+    }
+
+    /**
+     * 删除设备租赁计划
+     *
+     * @param planId
+     * @return
+     */
+    @DeleteMapping("/{planId}")
+    public CommonResponse delete(@PathVariable(value = "planId") String planId) {
+
+        Boolean res = false;
+        try {
+            if (StringUtils.isEmpty(planId)) {
+                return CommonResponse.errorMsg("租赁计划ID不得为空");
+            }
+            ElPlan plan = elPlanService.findElPlanById(planId);
+            if (plan == null) {
+                return CommonResponse.errorMsg("该条租赁计划已过期");
+            }
+            if (Constants.PLANSTATUS_COMMITED.equals(plan.getPlanStatus())) {
+                return CommonResponse.errorMsg("该条租赁计划已提交，不能编辑修改");
+            }
+            if (Constants.PLANSTATUS_FAILED.equals(plan.getPlanStatus())
+                    || Constants.PLANSTATUS_PASSED.equals(plan.getPlanStatus())) {
+                return CommonResponse.errorMsg("该条租赁计划已审核，不能编辑修改");
+            }
+            res = elPlanService.deletePlan(planId);
+            if (!res) {
+                return CommonResponse.errorMsg("设备租赁计划删除失败");
+            }
+            return CommonResponse.ok();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return CommonResponse.errorException("设备租赁计划删除服务异常");
+        }
+    }
+
+    /**
+     * 删除租赁计划明细记录
+     *
+     * @return
+     */
+    @DeleteMapping("/planItem/{itemId}")
+    public CommonResponse deleteItem(@PathVariable(value = "itemId") String itemId) {
+
+        try {
+            // 检验参数
+            if (StringUtils.isEmpty(itemId)) {
+                return CommonResponse.errorMsg("设备列表记录ID不得为空");
+            }
+
+            // 执行操作
+            boolean res = elPlanService.deleteItemById(itemId);
+            if (!res) {
+                return CommonResponse.errorMsg("删除设备列表记录失败");
+            }
+            return CommonResponse.ok("删除成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return CommonResponse.ok("删除失败");
+        }
+    }
+
+    /**
+     * 通过主键查询设备租赁计划
+     *
+     * @param planId
+     * @return
+     */
+    @GetMapping("/{planId}")
+    public CommonResponse getElPlan(@PathVariable(value = "planId") String planId) {
+
+        try {
+            if (StringUtils.isEmpty(planId)) {
+                return CommonResponse.errorMsg("设备租赁计划ID不得为空");
+            }
+            ElPlan elPlan = elPlanService.findElPlanById(planId);
+            if (elPlan == null) {
+                return CommonResponse.build(201, "设备租赁计划查询为空", null);
+            }
+            return CommonResponse.ok(elPlan);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            return CommonResponse.errorException("设备租赁计划查询服务异常");
+        }
+    }
+
+    /**
+     * 分页条件查询设备租赁计划
+     *
+     * @param elPlan
+     * @param pageSize
+     * @param pageNum
+     * @param equipmentType
+     * @param planType
+     * @return
+     */
+    @PostMapping("/list/{equipmentType}/{planType}")
+    public CommonResponse getElPlans(@RequestBody ElPlan elPlan, @RequestParam(value = "pageSize", defaultValue = "30") Integer pageSize,
+                                     @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+                                     @PathVariable(value = "equipmentType") String equipmentType,
+                                     @PathVariable(value = "planType") String planType) {
+        try {
+            // 租赁设备类型
+            if (!StringUtils.isEmpty(equipmentType) && Constants.PLANEQUIPMENTTYPE_GENERIC_VALUE.equals(equipmentType)) {
+                equipmentType = Constants.PLANEQUIPMENTTYPE_GENERIC;
+            }
+            if (!StringUtils.isEmpty(equipmentType) && Constants.PLANEQUIPMENTTYPE_INTEGRATED_VALUE.equals(equipmentType)) {
+                equipmentType = Constants.PLANEQUIPMENTTYPE_INTEGRATED;
+            }
+            if (!Constants.PLANEQUIPMENTTYPE_GENERIC.equals(equipmentType)
+                    && !Constants.PLANEQUIPMENTTYPE_INTEGRATED.equals(equipmentType)) {
+                return CommonResponse.errorMsg("请求路径书写有误");
+            }
+
+            // 租赁计划类型
+            if (!StringUtils.isEmpty(planType) && Constants.PLANTYPE_YEAR_VALUE.equals(planType)) {
+                planType = Constants.PLANTYPE_YEAR;
+            }
+            if (!StringUtils.isEmpty(planType) && Constants.PLANTYPE_QUARTER_VALUE.equals(planType)) {
+                planType = Constants.PLANTYPE_QUARTER;
+            }
+            if (!StringUtils.isEmpty(planType) && Constants.PLANTYPE_MONTH_VALUE.equals(planType)) {
+                planType = Constants.PLANTYPE_MONTH;
+            }
+            if (!StringUtils.isEmpty(planType) && Constants.PLANTYPE_URGENT_VALUE.equals(planType)) {
+                planType = Constants.PLANTYPE_URGENT;
+            }
+            if (!Constants.PLANTYPE_YEAR.equals(planType)
+                    && Constants.PLANTYPE_QUARTER.equals(planType)
+                    && Constants.PLANTYPE_MONTH.equals(planType)
+                    && Constants.PLANTYPE_URGENT.equals(planType)) {
+                return CommonResponse.errorMsg("请求路径书写有误");
+            }
+
+            // 查询数据
+            pageSize = pageSize == null ? Constants.PAGE_SIZE : pageSize;
+            pageNum = pageNum == null ? 1 : pageNum;
+            elPlan.setPlanEquipmentType(equipmentType);
+            elPlan.setPlanType(planType);
+            Paging page = elPlanService.findElPlanByCondition(elPlan, pageSize, pageNum);
+            if (page == null || page.getTotal() <= 0) {
+                return CommonResponse.build(201, "查询结果为空", null);
+            }
+            return CommonResponse.ok(page);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return CommonResponse.errorException("租赁计划查询服务异常");
+        }
+    }
+
+    /**
+     * 审批、提交操作
+     *
+     * @param approvalType
+     * @param elPlan
+     * @return
+     */
+    @PostMapping("/approve/{approvalType}")
+    public CommonResponse approval(@PathVariable(value = "approvalType") String approvalType,
+                                   @RequestBody ElPlan elPlan) {
+
+        try {
+            // 数据验证
+            if (StringUtils.isEmpty(approvalType)) {
+                return CommonResponse.errorMsg("请求路径书写有误");
+            }
+            if (elPlan == null || StringUtils.isEmpty(elPlan.getPlanId())) {
+                return CommonResponse.errorMsg("请补充租赁计划ID");
+            }
+
+            // 填充数据
+            ElPlan plan = elPlanService.findElPlanById(elPlan.getPlanId());
+            if (plan == null) {
+                return CommonResponse.errorMsg("该条租赁计划已过期");
+            }
+            elPlan.setPlanType(plan.getPlanType());
+            elPlan.setPlanEquipmentType(plan.getPlanEquipmentType());
+            UserDTO userDTO = userFromRedis.findByToken();
+            if (plan.getElPlanItemList() != null && plan.getElPlanItemList().size() > 0) {
+                elPlan.setElPlanItemList(plan.getElPlanItemList());
+            } else {
+                return CommonResponse.errorMsg("设备列表不得为空");
+            }
+            if ("submit".equals(approvalType)) {
+                if (Constants.PLANSTATUS_COMMITED.equals(plan.getPlanStatus())
+                        || Constants.PLANSTATUS_PASSED.equals(plan.getPlanStatus())
+                        || Constants.PLANSTATUS_FAILED.equals(plan.getPlanStatus())) {
+                    return CommonResponse.errorMsg("该条租赁计划已提交,不能重复提交");
+                }
+
+                elPlan.setPlanUpdatorId(userDTO == null ? "" : userDTO.getId()+"");
+                elPlan.setPlanUpdatorName(userDTO == null ? "" : userDTO.getName());
+                elPlan.setPlanStatus(Constants.PLANSTATUS_COMMITED);
+                elPlan.setPlanUpdateTime(System.currentTimeMillis());
+            }
+            if ("passed".equals(approvalType)) {
+                elPlan.setPlanStatus(Constants.PLANSTATUS_PASSED);
+
+                elPlan.setPlanApproverName(userDTO == null ? "" : userDTO.getName());
+                elPlan.setPlanApproverId(userDTO == null ? "" : userDTO.getId()+"");
+                if (Constants.PLANSTATUS_UNCOMMITED.equals(plan.getPlanStatus())) {
+                    return CommonResponse.errorMsg("该条租赁计划未提交，不能审核");
+                }
+                if (Constants.PLANSTATUS_FAILED.equals(plan.getPlanStatus())
+                        || Constants.PLANSTATUS_PASSED.equals(plan.getPlanStatus())) {
+                    return CommonResponse.errorMsg("该条租赁计划已审核，不能重复审核");
+                }
+                elPlan.setPlanApproveTime(System.currentTimeMillis());
+            }
+            if ("failed".equals(approvalType)) {
+                elPlan.setPlanStatus(Constants.PLANSTATUS_FAILED);
+
+                elPlan.setPlanApproverId(userDTO == null ? "" : userDTO.getId()+"");
+                elPlan.setPlanApproverName(userDTO == null ? "" : userDTO.getName());
+                if (Constants.PLANSTATUS_UNCOMMITED.equals(plan.getPlanStatus())) {
+                    return CommonResponse.errorMsg("该条租赁计划未提交，不能审核");
+                }
+                if (Constants.PLANSTATUS_FAILED.equals(plan.getPlanStatus())
+                        || Constants.PLANSTATUS_PASSED.equals(plan.getPlanStatus())) {
+                    return CommonResponse.errorMsg("该条租赁计划已审核，不能重复审核");
+                }
+                elPlan.setPlanApproveTime(System.currentTimeMillis());
+            }
+
+            // 保存数据
+            CommonResponse result = elPlanPlusService.approve(elPlan);
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return CommonResponse.errorException("服务异常");
+        }
+    }
+
+    /**
+     * 查询租赁计划备用设备
+     *
+     * @param elPlanUse
+     * @return
+     */
+    @PostMapping("/findElPlanUse")
+    public CommonResponse findElPlanUseList(@RequestBody ElPlanUse elPlanUse) {
+        try {
+
+            if (StringUtils.isEmpty(elPlanUse.getEquipmentType())) {
+                return CommonResponse.errorMsg("设备类型不得为空");
+            }
+            if (StringUtils.isEmpty(elPlanUse.getCenterYear())) {
+                return CommonResponse.errorMsg("需求年度不得为空");
+            }
+            if ("1".equals(elPlanUse.getEquipmentType())) {
+                if (StringUtils.isEmpty(elPlanUse.getCenterMonth())) {
+                    return CommonResponse.errorMsg("需求月度不得为空");
+                }
+            }
+            if (StringUtils.isEmpty(elPlanUse.getPositionId())) {
+                return CommonResponse.errorMsg("使用单位不得为空");
+            }
+
+            List<ElPlanUseDTO> list = elPlanPlusService.findElPlanUseList(elPlanUse);
+            if (list == null || list.size() == 0) {
+                return CommonResponse.build(200, "查询结果为空", null);
+            }
+            return CommonResponse.ok(list);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return CommonResponse.errorException("服务异常");
+        }
+    }
+
+    /**
+     * @param page
+     * @param size
+     * @return
+     * @method 分页查询在租设备列表
+     */
+    @GetMapping("/findByCreatorId")
+    public CommonResponse findByCreatorId(@RequestParam(defaultValue = "1") Integer page,
+                                          @RequestParam(defaultValue = "20") Integer size,
+                                          @RequestParam String jsonString) {
+        Map elPlanUseMap = new HashMap();
+        if (!StringUtils.isEmpty(jsonString)){
+            ElPlanDTO elPlanDTO = JsonUtils.jsonToPojo(jsonString,ElPlanDTO.class);
+            if (elPlanDTO == null){
+                return CommonResponse.errorMsg("参数对象不能为空");
+            }
+            if (elPlanDTO.getPlanYear() == null){
+                return CommonResponse.errorMsg("计划年度不能为空");
+            }
+            if (elPlanDTO.getPositionId() == null){
+                return CommonResponse.build(500,"矿分区id不能为空",null);
+            }
+            if (elPlanDTO.getPlanEquipmentType() == null){
+                return CommonResponse.errorMsg("设备类型不能为空");
+            }
+            if ("1".equals(elPlanDTO.getPlanEquipmentType())){
+                if (elPlanDTO.getPlanMonth() == null){
+                    return CommonResponse.errorMsg("月份不能为空");
+                }
+                elPlanDTO.setPlanType("3");
+            }else if ("2".equals(elPlanDTO.getPlanEquipmentType())){
+                elPlanDTO.setPlanType("1");
+            }
+            ElPlan elPlan = new ElPlan();
+            if (elPlanDTO.getPlanMonth() != null || "".equals(elPlanDTO.getPlanMonth())){
+                elPlan.setPlanMonth(elPlanDTO.getPlanMonth());
+            }
+            elPlan.setPlanYear(elPlanDTO.getPlanYear());
+            elPlan.setPlanEquipmentType(elPlanDTO.getPlanEquipmentType());
+            elPlan.setPlanType(elPlanDTO.getPlanType());
+            List<ElPlan> elPlans = elPlanService.findByCreatorId(elPlan);
+            if (elPlans == null || elPlans.size() <= 0) {
+                return CommonResponse.ok();
+            }
+            List<String> planIds = new ArrayList<>();
+            ElPlanItem elPlanItem = new ElPlanItem();
+            for (ElPlan elPlan1 : elPlans) {
+                elPlanItem.setPlanId(elPlan1.getPlanId());
+                elPlanItem.setPositionId(Long.parseLong(elPlanDTO.getPositionId()));
+                List<ElPlanItem> elPlanItems = elUseService.findByPlanId(elPlanItem);
+                if (elPlanItems.size() <= 0) {
+                    continue;
+                }
+                for (ElPlanItem elPlanItem1 : elPlanItems) {
+                    planIds.add(elPlanItem1.getItemId());
+                }
+            }
+            if (planIds.size() < 1) {
+                return CommonResponse.errorMsg("不存在该计划");
+            }
+            elPlanUseMap.put("planItemId",planIds);
+            elPlanUseMap.put("smallTypeCode",elPlanDTO.getSmallTypeCode());
+            elPlanUseMap.put("middleTypeCode",elPlanDTO.getMiddleTypeCode());
+            elPlanUseMap.put("bigTypeCode",elPlanDTO.getBigTypeCode());
+            elPlanUseMap.put("equipmentName",elPlanDTO.getEquipmentName());
+            elPlanUseMap.put("effectCode",elPlanDTO.getEffectCode());
+            elPlanUseMap.put("equipmentModel",elPlanDTO.getEquipmentModel());
+            elPlanUseMap.put("equipmentFactory",elPlanDTO.getEquipmentFactory());
+            elPlanUseMap.put("equipmentCode",elPlanDTO.getEquipmentCode());
+            elPlanUseMap.put("positionId",elPlanDTO.getPositionId());
+            if(elPlanUseService.list(page,size,elPlanUseMap) == null){
+                return CommonResponse.ok();
+            }
+        }
+        return CommonResponse.ok(elPlanUseService.list(page, size, elPlanUseMap));
+    }
+
+    /**
+     * 部门单位下拉表查询
+     * @param page
+     * @param size
+     * @param type
+     * @param pCode
+     * @return
+     */
+    @GetMapping
+    public CommonResponse find(@RequestParam(value = "page", defaultValue = "1") Integer page,
+                                     @RequestParam(value = "size", defaultValue = "20") Integer size,
+                                     @RequestParam Byte type,
+                               @RequestParam(defaultValue = "") String pCode) {
+        Map map = new HashMap();
+        map.put("type", type);
+        map.put("pcode",pCode);
+        PageInfo<Dept> deptPageInfo = deptService.findByPage(page, size, map);
+        return CommonResponse.ok(deptPageInfo);
+    }
+
+    @GetMapping(value = "/findPositionList")
+    public CommonResponse findPositionList(@RequestParam(value = "planPosition") String planPosition) {
+
+        if (StringUtils.isEmpty(planPosition)) {
+            return CommonResponse.errorMsg("提出单位code不得为空");
+        }
+
+        List<SbPosition> list = elPlanPlusService.findPositionList(planPosition);
+        if (list == null || list.size() <= 0) {
+            return CommonResponse.build(200, "查询结果为空", null);
+        }
+
+        return CommonResponse.ok(list);
+    }
+}

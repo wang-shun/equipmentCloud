@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yankuang.equipment.authority.mapper.DeptMapper">
+    <resultMap id="BaseResultMap" type="com.yankuang.equipment.authority.model.Dept" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="code" property="code" jdbcType="VARCHAR" />
+        <result column="pcode" property="pcode" jdbcType="VARCHAR" />
+        <result column="level" property="level" jdbcType="BIGINT" />
+        <result column="sorting" property="sorting" jdbcType="BIGINT" />
+        <result column="remark" property="remark" jdbcType="VARCHAR" />
+        <result column="create_by" property="createBy" jdbcType="VARCHAR" />
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP" />
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR" />
+        <result column="update_at" property="updateAt" jdbcType="TIMESTAMP" />
+        <result column="version" property="version" jdbcType="BIGINT" />
+        <result column="status" property="status" jdbcType="TINYINT" />
+        <result column="type" property="type" jdbcType="TINYINT" />
+        <result column="address" property="address" jdbcType="VARCHAR" />
+        <result column="project_code" property="projectCode" jdbcType="VARCHAR"/>
+        <result column="pname" property="pname" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        id, name,type, code, pcode, level, sorting, remark,address,create_at,update_at, create_by, update_by, version, status, project_code
+    </sql>
+
+    <insert id="create" parameterType="com.yankuang.equipment.authority.model.Dept">
+        INSERT INTO el_department
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            type, name, code, pcode, sorting, create_by, update_by,project_code,level,remark,address
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            #{type}, #{name},#{code},#{pcode},#{sorting},#{createBy},#{updateBy},#{projectCode},#{level},#{remark},#{address}
+        </trim>
+    </insert>
+
+    <update id="delete" parameterType="java.util.List">
+        UPDATE el_department
+        <set>
+            status = 99,
+            update_at = CURRENT_TIMESTAMP
+        </set>
+        WHERE code in
+        <foreach collection="list" item="code" separator="," open="(" close=")">
+            #{code}
+        </foreach>
+    </update>
+
+    <update id="update" parameterType="com.yankuang.equipment.authority.model.Dept" >
+        update el_department
+        <set >
+            <if test="name != null and name != '' " >
+                name = #{name},
+            </if>
+            <if test="pcode != null and pcode != '' " >
+                pcode = #{pcode},
+            </if>
+            <if test="level != null and level != '' " >
+                level = #{level},
+            </if>
+            <if test="sorting != null and sorting != '' " >
+                sorting = #{sorting},
+            </if>
+            <if test="updateBy != null and updateBy != '' " >
+                update_by = #{updateBy},
+            </if>
+            <if test="version != null and version != '' " >
+                version = #{version},
+            </if>
+            <if test="type != null and type != '' " >
+                type = #{type},
+            </if>
+            <if test="address != null and address != '' " >
+                type = #{address},
+            </if>
+            remark = #{remark},
+            update_at = CURRENT_TIMESTAMP
+        </set>
+        where code = #{code}
+    </update>
+
+    <select id="findByCode" parameterType="String" resultMap="BaseResultMap" >
+        SELECT
+         d1.id, d1.name,d2.name as pname, d1.code, d1.pcode, d1.level, d1.sorting, d1.remark, d1.create_by, d1.update_by, d1.version, d1.status, d1.project_code,d1.type,d1.address
+        FROM el_department d1
+        left join el_department d2
+        on d1.pcode = d2.code
+        WHERE d1.code = #{code}
+        AND d1.status != 99
+    </select>
+
+    <select id="findByNameAndPcode" parameterType="Map" resultMap="BaseResultMap" >
+        SELECT <include refid="Base_Column_List" />
+        FROM el_department
+        WHERE name = #{name}
+        and pcode = #{pcode}
+        AND status != 99
+    </select>
+
+    <select id="list" parameterType="java.util.HashMap" resultMap="BaseResultMap" >
+        select
+        <include refid="Base_Column_List"/>
+        from el_department
+        <where>
+        1 = 1
+        <if test="name != null and name != '' " >
+            AND name like '%${name}%'
+        </if>
+        <if test="type != null and type != '' " >
+            AND type = #{type}
+        </if>
+        <if test="pcode != null and pcode != '' " >
+            AND pcode = #{pcode}
+        </if>
+        <if test="level != null and level != '' " >
+            AND level = #{level}
+        </if>
+        <if test="address != null and address != '' " >
+            AND address = #{address}
+        </if>
+            AND status != 99
+        </where>
+        order by create_at desc
+    </select>
+
+</mapper>

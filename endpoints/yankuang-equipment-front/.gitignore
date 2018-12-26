@@ -1,0 +1,12 @@
+node_modules/
+.vscode/
+.next/
+build/
+lib/
+src/
+.happypack/
+logs/
+
+.DS_Store
+pages/
+!app/pages

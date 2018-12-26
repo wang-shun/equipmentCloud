@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yankuang.equipment.equipment.mapper.SbEquipmentTMapper" >
+  <resultMap id="BaseResultMap" type="com.yankuang.equipment.equipment.model.SbEquipmentT" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="is_lease" property="isLease" jdbcType="TINYINT" />
+    <result column="sbtype_one" property="sbtypeOne" jdbcType="VARCHAR" />
+    <result column="sbtype_one_name" property="sbtypeOneName" jdbcType="VARCHAR" />
+    <result column="sbtype_two" property="sbtypeTwo" jdbcType="VARCHAR" />
+    <result column="sbtype_two_name" property="sbtypeTwoName" jdbcType="VARCHAR" />
+    <result column="sbtype_three" property="sbtypeThree" jdbcType="VARCHAR" />
+    <result column="sbtype_three_name" property="sbtypeThreeName" jdbcType="VARCHAR" />
+    <result column="sbmodel_code" property="sbmodelCode" jdbcType="VARCHAR" />
+    <result column="sbmodel_name" property="sbmodelName" jdbcType="VARCHAR" />
+    <result column="tech_code" property="techCode" jdbcType="VARCHAR" />
+    <result column="factory" property="factory" jdbcType="VARCHAR" />
+    <result column="prod_date" property="prodDate" jdbcType="DATE" />
+    <result column="prod_code" property="prodCode" jdbcType="VARCHAR" />
+    <result column="ma_code" property="maCode" jdbcType="VARCHAR" />
+    <result column="ma_start_date" property="maStartDate" jdbcType="DATE" />
+    <result column="ma_end_date" property="maEndDate" jdbcType="DATE" />
+    <result column="proof" property="proof" jdbcType="VARCHAR" />
+    <result column="proof_code" property="proofCode" jdbcType="VARCHAR" />
+    <result column="license" property="license" jdbcType="VARCHAR" />
+    <result column="arrive_date" property="arriveDate" jdbcType="DATE" />
+    <result column="use_date" property="useDate" jdbcType="DATE" />
+    <result column="comp" property="comp" jdbcType="VARCHAR" />
+    <result column="contranct" property="contranct" jdbcType="VARCHAR" />
+    <result column="buy_price" property="buyPrice" jdbcType="DECIMAL" />
+    <result column="is_new" property="isNew" jdbcType="TINYINT" />
+    <result column="ware" property="ware" jdbcType="VARCHAR" />
+    <result column="ware_name" property="wareName" jdbcType="VARCHAR" />
+    <result column="is_rfid" property="isRfid" jdbcType="TINYINT" />
+    <result column="asset_code" property="assetCode" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="TINYINT" />
+    <result column="create_by" property="createBy" jdbcType="VARCHAR" />
+    <result column="create_at" property="createAt" jdbcType="TIMESTAMP" />
+    <result column="update_by" property="updateBy" jdbcType="VARCHAR" />
+    <result column="update_at" property="updateAt" jdbcType="TIMESTAMP" />
+    <result column="version" property="version" jdbcType="BIGINT" />
+    <result column="position_code" property="positionCode" jdbcType="VARCHAR" />
+    <result column="state_code" property="stateCode" jdbcType="VARCHAR" />
+    <result column="cost_years" property="costYears" jdbcType="TINYINT" />
+    <result column="day_lease_fee" property="dayLeaseFee" jdbcType="DOUBLE" />
+    <result column="main_para" property="mainPara" jdbcType="VARCHAR" />
+    <result column="para1" property="para1" jdbcType="VARCHAR" />
+    <result column="para2" property="para2" jdbcType="VARCHAR" />
+    <result column="para3" property="para3" jdbcType="VARCHAR" />
+    <result column="para4" property="para4" jdbcType="VARCHAR" />
+    <result column="para5" property="para5" jdbcType="VARCHAR" />
+    <result column="para6" property="para6" jdbcType="VARCHAR" />
+    <result column="para7" property="para7" jdbcType="VARCHAR" />
+    <result column="para8" property="para8" jdbcType="VARCHAR" />
+    <result column="asset_comp" property="assetComp" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, code, name, is_lease, sbtype_one, sbtype_two, sbtype_three, sbmodel_code, tech_code, 
+    factory, prod_date, prod_code, ma_code, ma_start_date, ma_end_date, proof, proof_code, 
+    license, arrive_date, use_date, comp, contranct, buy_price, is_new, ware, is_rfid,
+    asset_code, status, create_by, create_at, update_by, update_at, version, position_code,
+    state_code, cost_years,
+    day_lease_fee, main_para, para1, para2, para3, para4, para5, para6, para7, para8, asset_comp
+  </sql>
+  <select id="findById" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select t.*,t1.name as sbtype_one_name,t2.name as sbtype_two_name,t3.name as sbtype_three_name,t4.name as sbmodel_name
+    from sb_equipment_t t
+    left join sb_type t1 on t.sbtype_one=t1.code and t1.status='1'
+    left join sb_type t2 on t.sbtype_two=t2.code and t2.status='1'
+    left join sb_type t3 on t.sbtype_three=t3.code and t3.status='1'
+    left join sb_model t4 on t.sbmodel_code=t4.code and t4.status='1'
+    where t.id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="findByCode" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select
+    <include refid="Base_Column_List" />
+    from sb_equipment_t
+    where code = #{code,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteById" parameterType="java.lang.Long" >
+    update sb_equipment_t
+    set status = 99
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deletes" parameterType="java.util.List">
+    update sb_equipment_t
+    set status = 99
+    where id in
+    <foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+      #{item}
+    </foreach>
+  </delete>
+  <insert id="create" parameterType="com.yankuang.equipment.equipment.model.SbEquipmentT" >
+    insert into sb_equipment_t (code, name,
+      is_lease, sbtype_one, sbtype_two, 
+      sbtype_three, sbmodel_code, tech_code, 
+      factory, prod_date, prod_code, 
+      ma_code, ma_start_date, ma_end_date, 
+      proof, proof_code, license, 
+      arrive_date, use_date, comp, 
+      contranct, buy_price, is_new, 
+      ware, is_rfid, asset_code, 
+      create_by, create_at,
+      update_by, update_at,
+      position_code, state_code, cost_years,
+      day_lease_fee,
+      main_para, para1, para2, para3, para4, para5, para6, para7, para8, asset_comp
+      )
+    values (#{code,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+      #{isLease,jdbcType=TINYINT}, #{sbtypeOne,jdbcType=VARCHAR}, #{sbtypeTwo,jdbcType=VARCHAR}, 
+      #{sbtypeThree,jdbcType=VARCHAR}, #{sbmodelCode,jdbcType=VARCHAR}, #{techCode,jdbcType=VARCHAR}, 
+      #{factory,jdbcType=VARCHAR}, #{prodDate,jdbcType=DATE}, #{prodCode,jdbcType=VARCHAR}, 
+      #{maCode,jdbcType=VARCHAR}, #{maStartDate,jdbcType=DATE}, #{maEndDate,jdbcType=DATE}, 
+      #{proof,jdbcType=VARCHAR}, #{proofCode,jdbcType=VARCHAR}, #{license,jdbcType=VARCHAR}, 
+      #{arriveDate,jdbcType=DATE}, #{useDate,jdbcType=DATE}, #{comp,jdbcType=VARCHAR}, 
+      #{contranct,jdbcType=VARCHAR}, #{buyPrice,jdbcType=DECIMAL}, #{isNew,jdbcType=TINYINT}, 
+      #{ware,jdbcType=VARCHAR}, #{isRfid,jdbcType=TINYINT}, #{assetCode,jdbcType=VARCHAR}, 
+      #{createBy,jdbcType=VARCHAR}, CURRENT_TIMESTAMP(),
+      #{updateBy,jdbcType=VARCHAR}, CURRENT_TIMESTAMP(),
+      #{positionCode,jdbcType=VARCHAR}, #{stateCode,jdbcType=VARCHAR}, #{costYears,jdbcType=TINYINT},
+      #{dayLeaseFee,jdbcType=DOUBLE},
+      #{mainPara,jdbcType=VARCHAR},#{para1,jdbcType=VARCHAR},#{para2,jdbcType=VARCHAR},
+      #{para3,jdbcType=VARCHAR},#{para4,jdbcType=VARCHAR},#{para5,jdbcType=VARCHAR},
+      #{para6,jdbcType=VARCHAR},#{para7,jdbcType=VARCHAR},#{para8,jdbcType=VARCHAR},#{assetComp,jdbcType=VARCHAR}
+      )
+  </insert>
+
+  <update id="update" parameterType="com.yankuang.equipment.equipment.model.SbEquipmentT" >
+    update sb_equipment_t
+    set name = #{name,jdbcType=VARCHAR},
+      is_lease = #{isLease,jdbcType=TINYINT},
+      sbtype_one = #{sbtypeOne,jdbcType=VARCHAR},
+      sbtype_two = #{sbtypeTwo,jdbcType=VARCHAR},
+      sbtype_three = #{sbtypeThree,jdbcType=VARCHAR},
+      sbmodel_code = #{sbmodelCode,jdbcType=VARCHAR},
+      tech_code = #{techCode,jdbcType=VARCHAR},
+      factory = #{factory,jdbcType=VARCHAR},
+      prod_date = #{prodDate,jdbcType=DATE},
+      prod_code = #{prodCode,jdbcType=VARCHAR},
+      ma_code = #{maCode,jdbcType=VARCHAR},
+      ma_start_date = #{maStartDate,jdbcType=DATE},
+      ma_end_date = #{maEndDate,jdbcType=DATE},
+      proof = #{proof,jdbcType=VARCHAR},
+      proof_code = #{proofCode,jdbcType=VARCHAR},
+      license = #{license,jdbcType=VARCHAR},
+      arrive_date = #{arriveDate,jdbcType=DATE},
+      use_date = #{useDate,jdbcType=DATE},
+      comp = #{comp,jdbcType=VARCHAR},
+      contranct = #{contranct,jdbcType=VARCHAR},
+      buy_price = #{buyPrice,jdbcType=DECIMAL},
+      is_new = #{isNew,jdbcType=TINYINT},
+      ware = #{ware,jdbcType=VARCHAR},
+      is_rfid = #{isRfid,jdbcType=TINYINT},
+      asset_code = #{assetCode,jdbcType=VARCHAR},
+      update_by = #{updateBy,jdbcType=VARCHAR},
+      update_at = CURRENT_TIMESTAMP(),
+      position_code = #{positionCode,jdbcType=VARCHAR},
+      state_code = #{stateCode,jdbcType=VARCHAR},
+      cost_years = #{costYears,jdbcType=TINYINT},
+      day_lease_fee = #{dayLeaseFee,jdbcType=DOUBLE},
+      main_para = #{mainPara,jdbcType=VARCHAR},
+      para1 = #{para1,jdbcType=VARCHAR},
+      para2 = #{para2,jdbcType=VARCHAR},
+      para3 = #{para3,jdbcType=VARCHAR},
+      para4 = #{para4,jdbcType=VARCHAR},
+      para5 = #{para5,jdbcType=VARCHAR},
+      para6 = #{para6,jdbcType=VARCHAR},
+      para7 = #{para7,jdbcType=VARCHAR},
+      para8 = #{para8,jdbcType=VARCHAR},
+      asset_comp = #{assetComp,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="list" resultMap="BaseResultMap">
+    select t.*,t1.name as sbtype_one_name,t2.name as sbtype_two_name,t3.name as sbtype_three_name,
+    t4.name as sbmodel_name,p.name ware_name
+    from sb_equipment_t t
+    left join sb_type t1 on t.sbtype_one=t1.code and t1.status='1'
+    left join sb_type t2 on t.sbtype_two=t2.code and t2.status='1'
+    left join sb_type t3 on t.sbtype_three=t3.code and t3.status='1'
+    left join sb_model t4 on t.sbmodel_code=t4.code and t4.status='1'
+    left join sb_position p on t.ware = p.code and p.type = '02' and p.status='1'
+    <where>
+      1=1 and t.status = '1' and t.cost_years > 0
+      <if test="code != null and code != ''" >
+        AND t.code like '%' #{code} '%'
+      </if>
+      <if test="name != null and name != ''" >
+        AND t.name like '%' #{name} '%'
+      </if>
+      <if test="sbtypeOne != null and sbtypeOne != ''" >
+        AND t.sbtype_one =  #{sbtypeOne}
+      </if>
+      <if test="sbtypeTwo != null and sbtypeTwo != ''" >
+        AND t.sbtype_two =  #{sbtypeTwo}
+      </if>
+      <if test="sbtypeThree != null and sbtypeThree != ''" >
+        AND t.sbtype_three =  #{sbtypeThree}
+      </if>
+      <if test="sbmodelCode != null and sbmodelCode != ''" >
+        AND t.sbmodel_code = #{sbmodelCode}
+      </if>
+      <if test="ware != null and ware != ''" >
+        AND t.ware = #{ware}
+      </if>
+      <if test="mainPara != null and mainPara != ''" >
+        AND t.main_para = #{mainPara}
+      </if>
+      <if test="isLease != null and isLease == 1" >
+        AND t.is_lease = 1
+      </if>
+      <if test="isLease != null and isLease != 1" >
+        AND t.is_lease != 1
+      </if>
+      <if test="comp != null and comp != ''" >
+        AND t.comp = #{comp}
+      </if>
+      <if test="stateCode != null and stateCode != ''" >
+        AND t.state_code = #{stateCode}
+      </if>
+    </where>
+    order by t.create_at desc
+  </select>
+
+  <update id="updateStateCodeByMonth" parameterType="java.util.List">
+    update sb_equipment_t
+    set state_code = '0001'
+    where state_code = '0002' and status = 1 and is_lease = 1
+    and id not in (select equipment_id from el_plan_use where status = 2 and equipment_type = 1)
+  </update>
+</mapper>
