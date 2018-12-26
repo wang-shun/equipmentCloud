@@ -10,7 +10,7 @@ stages:
 - name: buildpack
   tasks:
   - aggregate:
-      #- put: bp-backend
+    - put: bp-backend
     - put: bp-frontend
 
 - name: release
