@@ -16,7 +16,7 @@ envs:
    yankuang-equipment-front:
     ports:
     #  - 12301
-      - 8080
+      - 9528
     health_check:
       exec:
         cmd: echo 1
@@ -29,7 +29,7 @@ envs:
       mem: 128
       disk: 0
     expose:
-      - 8080
+      - 9528
 	  
   equipment-web:
     ports:
