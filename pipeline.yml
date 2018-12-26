@@ -38,25 +38,25 @@ resources:
     username: ((gittar.username))
     password: ((gittar.password))
 
-- name: bp-backend
+    #- name: bp-backend
+    #  type: buildpack
+    #  source:
+    #    context: repo/services/yankuang-equipment
+    #    modules:
+    #    - name: equipment-web
+    #    - name: equipment-provider
+    #      path: equipment-equipment-provider/equipment-equipment-provider-impl
+    #    - name: syslog-provider
+    #      path: equipment-syslog-provider/equipment-syslog-provider-impl  
+    #    - name: authority-provider
+    #      path: equipment-authority-provider/equipment-authority-provider-impl
+
+- name: bp-frontend
   type: buildpack
   source:
-    context: repo/services/yankuang-equipment
+    context: repo/endpoints/yankuang-equipment-front
     modules:
-    - name: equipment-web
-    - name: equipment-provider
-      path: equipment-equipment-provider/equipment-equipment-provider-impl
-    - name: syslog-provider
-      path: equipment-syslog-provider/equipment-syslog-provider-impl  
-    - name: authority-provider
-      path: equipment-authority-provider/equipment-authority-provider-impl
-
-      #- name: bp-frontend
-      #  type: buildpack
-      #  source:
-      #    context: repo/endpoints/yankuang-equipment-front
-      #    modules:
-      #    - name: yankuang-equipment-front
+    - name: yankuang-equipment-front
 
 - name: dicehub
   type: dicehub
