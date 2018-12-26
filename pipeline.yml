@@ -10,7 +10,7 @@ stages:
 - name: buildpack
   tasks:
   - aggregate:
-    - put: bp-backend
+      #- put: bp-backend
     - put: bp-frontend
 
 - name: release
@@ -38,18 +38,18 @@ resources:
     username: ((gittar.username))
     password: ((gittar.password))
 
-- name: bp-backend
-  type: buildpack
-  source:
-    context: repo/services/yankuang-equipment
-    modules:
-    - name: equipment-web
-    - name: equipment-provider
-      path: equipment-equipment-provider/equipment-equipment-provider-impl
-    - name: syslog-provider
-      path: equipment-syslog-provider/equipment-syslog-provider-impl  
-    - name: authority-provider
-      path: equipment-authority-provider/equipment-authority-provider-impl
+    #- name: bp-backend
+    #  type: buildpack
+    #  source:
+    #    context: repo/services/yankuang-equipment
+    #    modules:
+    #    - name: equipment-web
+    #    - name: equipment-provider
+    #      path: equipment-equipment-provider/equipment-equipment-provider-impl
+    #    - name: syslog-provider
+    #      path: equipment-syslog-provider/equipment-syslog-provider-impl  
+    #    - name: authority-provider
+    #      path: equipment-authority-provider/equipment-authority-provider-impl
 
 - name: bp-frontend
   type: buildpack
