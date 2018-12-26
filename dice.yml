@@ -29,8 +29,7 @@ services:
       mem: 128
       disk: 0
     expose:
-      - 9528
-	  
+      - 9528 
   equipment-web:
     ports:
     - 12300
@@ -93,7 +92,6 @@ services:
       exec:
         cmd: echo 1
         duration: 120
-
 
 addons:
   #mysql:
