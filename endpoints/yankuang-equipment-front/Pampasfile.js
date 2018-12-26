@@ -2,7 +2,7 @@ const _ = require('lodash')
 
 const config = {
   extension: 'server',
-  port: 8080,
+  port: 9528,
   csrf: {
     enable: false
   },

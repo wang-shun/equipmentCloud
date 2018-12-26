@@ -1,6 +1,6 @@
 module.exports = () => {
   return {
-    port: 8080,
+    port: 9528,
     root: __dirname,
     statics: 'public/dist',
     handlebars: {

@@ -10,7 +10,7 @@ stages:
   tasks:
   - get: repo
     params:
-      depth: 1
+      depth: 3
 
 - name: buildpack
   tasks:
