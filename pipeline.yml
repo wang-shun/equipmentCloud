@@ -15,12 +15,12 @@ stages:
 - name: buildpack
   tasks:
     - aggregate:
-        - put: bp-backend
-          params:
-            only_build: false
-        - put: bp-frontend
-          params:
-            only_build: false
+      - put: bp-backend
+        params:
+          only_build: false
+      - put: bp-frontend
+        params:
+          only_build: false
 
 - name: release
   tasks:
