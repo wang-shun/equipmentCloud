@@ -60,13 +60,13 @@ resources:
         USE_AGENT: 'true'
       context: repo/services/yankuang-equipment
       modules:
-        - name: equipment-web
-        - name: equipment-provider
-          path: equipment-equipment-provider/equipment-equipment-provider-impl
-        - name: authority-provider
-          path: equipment-authority-provider/equipment-authority-provider-impl
-	    - name: syslog-provider
-		  path: equipment-syslog-provider/equipment-syslog-provider-impl
+      - name: equipment-web
+      - name: equipment-provider
+        path: equipment-equipment-provider/equipment-equipment-provider-impl
+      - name: syslog-provider
+        path: equipment-syslog-provider/equipment-syslog-provider-impl  
+      - name: authority-provider
+        path: equipment-authority-provider/equipment-authority-provider-impl
 
   - name: bp-frontend
     type: buildpack
