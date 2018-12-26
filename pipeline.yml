@@ -10,7 +10,7 @@ stages:
 - name: buildpack
   tasks:
   - aggregate:
-    - put: bp-backend
+      #- put: bp-backend
     - put: bp-frontend
 
 - name: release
@@ -51,12 +51,12 @@ resources:
     - name: authority-provider
       path: equipment-authority-provider/equipment-authority-provider-impl
 
-- name: bp-frontend
-  type: buildpack
-  source:
-    context: repo/endpoints/yankuang-equipment-front
-    modules:
-    - name: yankuang-equipment-front
+      #- name: bp-frontend
+      #  type: buildpack
+      #  source:
+      #    context: repo/endpoints/yankuang-equipment-front
+      #    modules:
+      #    - name: yankuang-equipment-front
 
 - name: dicehub
   type: dicehub
