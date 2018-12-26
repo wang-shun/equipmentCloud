@@ -11,9 +11,9 @@ envs:
  # ZOOKEEPER_HOST: "47.94.211.172"
  # ZOOKEEPER_PORT: "2181"
  
- services:
+services:
  
-   yankuang-equipment-front:
+  yankuang-equipment-front:
     ports:
     #  - 12301
       - 9528
@@ -144,9 +144,3 @@ environments:
     addons:
       yk-zk:
         plan: zookeeper:basic
-
-
-
-
-
-
