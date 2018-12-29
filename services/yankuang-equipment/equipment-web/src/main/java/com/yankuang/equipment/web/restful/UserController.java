@@ -108,7 +108,8 @@ public class UserController {
             return CommonResponse.errorTokenMsg("账号不存在");
         }
         Byte status = loginUser.getStatus();
-        if (status.equals(2) || 2 == status) {
+//        if (status.equals(2) || 2 == status) {
+        if (2 == status) {
             return CommonResponse.errorTokenMsg("账号已经被停用");
         }
         if (!password.equals(loginUser.getPassword())) {
@@ -155,7 +156,7 @@ public class UserController {
         // 1.redis中存放权限列表
         userDTO.setAuthoritys(authoritys);
         // 存放redis,暂时2小时
-        redis.set(token, JsonUtils.objectToJson(userDTO), 7200);
+        redis.set(token, JsonUtils.objectToJson(userDTO), 120);
         // user对象信息转json加密base64作为值存放redis
         userDTO.setAuthoritys(authorityTreeDTOS);
         System.out.println("返给前端页面的是权限树型结构" + userDTO.toString());
