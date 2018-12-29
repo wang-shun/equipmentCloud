@@ -1,9 +1,7 @@
 node_modules/
 .vscode/
 .next/
-build/
 lib/
-src/
 .happypack/
 logs/
 
